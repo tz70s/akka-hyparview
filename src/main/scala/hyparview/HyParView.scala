@@ -1,0 +1,3 @@
+package hyparview
+
+object HyParView {}
