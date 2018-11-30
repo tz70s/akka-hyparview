@@ -1,12 +1,11 @@
 package hyparview
 
-import java.net.Inet4Address
-
 object HyParView {
   // Define set of communication primitives.
 
   /** Identifier for membership. */
-  case class Identifier(ip: Inet4Address, port: Long)
+  // TODO: Should I use java.net.InetAddress instead of String?
+  case class Identifier(hostname: String, port: Int)
 
   case class TimeToLive(private val number: Int) {
 
