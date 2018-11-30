@@ -1,0 +1,3 @@
+package hyparview
+
+class MultiNodeJoinSpec {}
