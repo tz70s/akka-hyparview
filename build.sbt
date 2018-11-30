@@ -13,10 +13,7 @@ val akkaMultiNodeTestKit = akkaGroupId %% "akka-multi-node-testkit" % akkaVersio
 val scalaTestVersion = "3.0.5"
 val scalaTest = "org.scalatest" %% "scalatest" % scalaTestVersion % Test
 
-val pureConfigVersion = "0.10.0"
-val pureConfig = "com.github.pureconfig" %% "pureconfig" % pureConfigVersion
-
-val deps = Seq(akkaActor, akkaActorTestKit, akkaRemote, scalaTest, pureConfig, akkaMultiNodeTestKit)
+val deps = Seq(akkaActor, akkaActorTestKit, akkaRemote, scalaTest, akkaMultiNodeTestKit)
 
 lazy val `akka-hyparview` = (project in file("."))
   .settings(

@@ -1,7 +1,6 @@
 package hyparview
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
-import com.typesafe.config.{Config, ConfigFactory}
 import hyparview.HyParView.Identifier
 import hyparview.HyParViewClusterEvent.MemberUp
 import hyparview.network.Selector
