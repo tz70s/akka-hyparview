@@ -57,11 +57,11 @@ class HyParViewMultiNodeJoinSpec
 
     "send join message to contact node" in {
       runOn(node1) {
-        // TODO: need some methods and barriers for sync and assert the test result.
         val cluster = HyParViewCluster(system)
         cluster.subscribe(self)
         enterBarrier("node1-join")
         enterBarrier("node2-join")
+        expectMsg(MemberUp(Identifier("127.0.0.1", 8181)))
       }
 
       runOn(node2) {
