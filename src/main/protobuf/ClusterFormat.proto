@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package hyparview;
+
+enum ClusterManifest {
+    JOIN = 0;
+    FORWARD_JOIN = 1;
+    NEIGHBOR = 2;
+    SHUFFLE = 3;
+    SHUFFLE_REPLY = 4;
+}
+
+/**
+ * The primitive identifier of a node in HyParView protocol.
+ * However, we can dump the sender via tcp address lookup.
+ * This will be only used on ForwardJoin.
+ */
+message HostId {
+    string hostname = 1;
+    int32 port = 2;
+}
+
+message Join {
+    // node field needed.
+}
+
+message ForwardJoin {
+    HostId host = 1;
+    int32 ttl = 2;
+}
+
+message Neighbor {
+    bool prior = 1;
+}
+
+message Shuffle {
+
+}
+
+message ShuffleReply {
+
+}
+
+message Disconnect {
+
+}

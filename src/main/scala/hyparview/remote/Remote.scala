@@ -2,11 +2,15 @@ package hyparview.remote
 
 import akka.actor.ActorSystem
 import akka.event.Logging
-import akka.serialization.SerializationExtension
 import akka.stream.ActorMaterializer
 
-import scala.util.Try
-
+/**
+ * INTERNAL API.
+ *
+ * Entry point to construct remote capability.
+ * Will contained a Tcp server, multiple incoming and outgoing connections.
+ * It will hook up a message passing interface for loosely coupled interaction.
+ */
 private[remote] class Remote(implicit as: ActorSystem, mat: ActorMaterializer) {
 
   private val log = Logging(as, this.getClass)
@@ -22,18 +26,19 @@ private[remote] class Remote(implicit as: ActorSystem, mat: ActorMaterializer) {
       throw t
   }
 
-  // Serialization.
-  private val serialization = SerializationExtension(as)
-  private def serialize(o: AnyRef): Try[Array[Byte]] =
-    // Use the default Java Serializer.
-    serialization.serialize(o)
-
   private val tcpIO = TcpIO(tcpConf)
 }
 
+/**
+ * INTERNAL API.
+ */
 object Remote {
   def apply()(implicit as: ActorSystem, mat: ActorMaterializer): Remote = new Remote
 }
 
-/** Load this from config. */
+/**
+ * INTERNAL API.
+ *
+ * Configuration loaded from config, for representing binding address as this node.
+ */
 private[remote] case class RemoteConfig(hostname: String, port: Int)

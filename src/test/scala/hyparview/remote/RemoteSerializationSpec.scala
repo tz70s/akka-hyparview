@@ -2,8 +2,8 @@ package hyparview.remote
 
 import akka.actor.ActorSystem
 import akka.serialization.SerializationExtension
-import akka.testkit.{ImplicitSender, TestKit}
-import hyparview.remote.RemoteProto.HostId
+import akka.testkit.TestKit
+import hyparview.ClusterFormat.HostId
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 /** Should carefully place this, to avoid `this` and related fields to be serialized. */
@@ -11,7 +11,6 @@ case class FixtureMessage(seq: Int, message: String)
 
 class RemoteSerializationSpec
     extends TestKit(ActorSystem("RemoteSpec"))
-    with ImplicitSender
     with WordSpecLike
     with Matchers
     with BeforeAndAfterAll {
@@ -32,7 +31,7 @@ class RemoteSerializationSpec
       val id = HostId("127.0.0.1", 8080)
       val serializer = serialization.findSerializerFor(id)
       val bytes = serializer.toBinary(id)
-      val revert = serializer.fromBinary(bytes, classOf[HostId])
+      val revert = serializer.fromBinary(bytes, Some(classOf[HostId]))
       revert should be(id)
     }
   }

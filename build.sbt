@@ -17,8 +17,9 @@ val akkaMultiNodeTestKit = akkaGroupId %% "akka-multi-node-testkit" % akkaVersio
 val scalaTestVersion = "3.0.5"
 val scalaTest = "org.scalatest" %% "scalatest" % scalaTestVersion % Test
 
-val deps = Seq(akkaActor, akkaActorTestKit, akkaRemote, akkaStream, akkaStreamTestKit, akkaMultiNodeTestKit, scalaTest)
+val scalaPb = "com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion % "protobuf"
 
+val deps = Seq(akkaActor, akkaActorTestKit, akkaRemote, akkaStream, akkaStreamTestKit, akkaMultiNodeTestKit, scalaTest, scalaPb)
 
 lazy val `akka-hyparview` = (project in file("."))
   .settings(

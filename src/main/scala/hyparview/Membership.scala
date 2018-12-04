@@ -7,6 +7,8 @@ import hyparview.network.Selector
 import hyparview.network.Selector.{Connection, ConnectionClose, ConnectionFailed, ConnectionSuccess}
 
 /**
+ * INTERNAL API.
+ *
  * Membership service for identify nodes.
  * This actor will be implicitly created when using `Cluster(actorSystem)` call.
  * As you may imagine that Akka Cluster did.
@@ -22,8 +24,6 @@ import hyparview.network.Selector.{Connection, ConnectionClose, ConnectionFailed
  *
  * From now on, I've create a death-watch for SIMULATE persistent-connection.
  * This should be factored out once I've more time.
- *
- * INTERNAL API.
  */
 private[hyparview] class Membership(contactNode: Identifier) extends Actor with ActorLogging {
 

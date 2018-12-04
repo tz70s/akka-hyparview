@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+import "scalapb/scalapb.proto";
+
+package hyparview.remote;
+
+option (scalapb.options) = {
+   single_file: true
+   preamble: "sealed trait HyParViewMessageProto"
+};
+
+message Skeleton {
+   option (scalapb.message).extends = "HyParViewMessageProto";
+   enum Manifest {
+      HyParViewMessageManifest = 0;
+      UserMessageManifest = 1;
+   }
+   Manifest manifest = 1;
+   bytes payload = 2;
+}
