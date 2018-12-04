@@ -19,10 +19,12 @@ val scalaTest = "org.scalatest" %% "scalatest" % scalaTestVersion % Test
 
 val deps = Seq(akkaActor, akkaActorTestKit, akkaRemote, akkaStream, akkaStreamTestKit, akkaMultiNodeTestKit, scalaTest)
 
+
 lazy val `akka-hyparview` = (project in file("."))
   .settings(
     commonSettings,
-    libraryDependencies ++= deps
+    libraryDependencies ++= deps,
+    PB.targets in Compile := Seq(scalapb.gen() -> (sourceManaged in Compile).value)
   )
   .enablePlugins(MultiJvmPlugin)
   .configs(MultiJvm)

@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+// Primitive messages for remote utilities.
+
+package hyparview.remote;
+
+message HostId {
+   string hostname = 1;
+   int32 port = 2;
+}
