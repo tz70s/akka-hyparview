@@ -29,7 +29,7 @@ private[hyparview] class Membership(contactNode: Identifier) extends Actor with 
 
   import Membership._
 
-  private val selector = context.actorOf(Selector.props, Selector.SELECTOR_ACTOR_NAME)
+  private val selector = context.actorOf(Selector.props, Selector.SelectorActorName)
 
   private val selfId = try {
     val config = context.system.settings.config
@@ -74,7 +74,7 @@ private[hyparview] class Membership(contactNode: Identifier) extends Actor with 
  * INTERNAL API.
  */
 private[hyparview] object Membership {
-  val MEMBERSHIP_ACTOR_NAME = "membership"
+  val MembershipActorName = "membership"
   def props(contactNode: Identifier) = Props(new Membership(contactNode))
 
   case class Subscription(actorRef: ActorRef)

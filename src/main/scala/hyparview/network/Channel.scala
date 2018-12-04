@@ -15,7 +15,7 @@ private[network] class Channel(remoteId: Option[Identifier]) extends Actor with 
     case Some(id) =>
       // Address the connection node, note that we assume all actor system holds the same name.
       val selectorPath =
-        s"akka.tcp://${context.system.name}@${id.hostname}:${id.port}/user/${Membership.MEMBERSHIP_ACTOR_NAME}/$SELECTOR_ACTOR_NAME"
+        s"akka.tcp://${context.system.name}@${id.hostname}:${id.port}/user/${Membership.MembershipActorName}/$SelectorActorName"
 
       val selector = context.actorSelection(selectorPath)
       selector ! JoinChannel(self)

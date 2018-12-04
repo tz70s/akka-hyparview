@@ -61,6 +61,6 @@ private[hyparview] object Selector {
   case class ConnectionFailed(id: Identifier)
   case class ConnectionClose(id: Identifier)
 
-  val SELECTOR_ACTOR_NAME = "selector"
+  val SelectorActorName = "selector"
   def props = Props(new Selector)
 }

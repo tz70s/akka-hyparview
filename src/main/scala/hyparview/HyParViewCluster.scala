@@ -17,7 +17,7 @@ private[hyparview] class HyParViewClusterImpl(system: ExtendedActorSystem) exten
     Identifier(hostname, port)
   }
 
-  private val membership = system.actorOf(Membership.props(contactNode), MEMBERSHIP_ACTOR_NAME)
+  private val membership = system.actorOf(Membership.props(contactNode), MembershipActorName)
 
   /**
    * Subscribe set of MemberEvent for membership service.
