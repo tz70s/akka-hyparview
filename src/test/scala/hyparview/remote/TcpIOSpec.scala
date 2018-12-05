@@ -35,8 +35,8 @@ class TcpIOSpec
 
       val frameResult = Source(List(msg1, msg2))
         .map(akka.util.ByteString(_))
-        .via(TcpIOCodec.encode)
-        .via(TcpIOCodec.decode)
+        .via(TcpFraming.deframe)
+        .via(TcpFraming.frame)
         .map(bs => serializer.fromBinary(bs.toArray, Some(classOf[Skeleton])))
         .runWith(Sink.seq)
 
