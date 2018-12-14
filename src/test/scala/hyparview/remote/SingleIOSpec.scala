@@ -5,7 +5,7 @@ import akka.stream.{ActorMaterializer, KillSwitches, OverflowStrategy, SharedKil
 import akka.stream.scaladsl.{Keep, Sink, Source, SourceQueueWithComplete}
 import akka.testkit.{ImplicitSender, TestKit}
 import akka.util.ByteString
-import hyparview.remote.SingleIO.{SingleIOFrame, SingleIOProtocol}
+import hyparview.remote.SingleIO.{SingleIOProtocol, SingleIORead}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 class SingleIOSpec
@@ -32,8 +32,8 @@ class SingleIOSpec
 
       val queue = dummySourceQueue
 
-      singleIO ! SingleIOFrame(ByteString("Hello world!"))
-      singleIO ! SingleIOFrame(ByteString("Hello world!"))
+      singleIO ! SingleIORead(ByteString("Hello world!"))
+      singleIO ! SingleIORead(ByteString("Hello world!"))
       singleIO ! queue
       expectMsg(ByteString.empty)
       expectMsg(ByteString.empty)

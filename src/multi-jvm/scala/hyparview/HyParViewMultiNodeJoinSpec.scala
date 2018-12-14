@@ -72,10 +72,8 @@ class HyParViewMultiNodeJoinSpec
         enterBarrier("node2-join")
       }
     }
-
   }
-
 }
 
-class HyParViewMultiNodeJoinSpecMultiJvmNode1 extends HyParViewMultiNodeJoinSpec
-class HyParViewMultiNodeJoinSpecMultiJvmNode2 extends HyParViewMultiNodeJoinSpec
+// class HyParViewMultiNodeJoinSpecMultiJvmNode1 extends HyParViewMultiNodeJoinSpec
+// class HyParViewMultiNodeJoinSpecMultiJvmNode2 extends HyParViewMultiNodeJoinSpec

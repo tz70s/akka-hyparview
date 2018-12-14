@@ -3,10 +3,12 @@ val commonSettings = Seq(
   scalaVersion := "2.12.7"
 )
 
-val akkaVersion = "2.5.18"
+val akkaVersion = "2.5.19"
 val akkaGroupId = "com.typesafe.akka"
 val akkaActor = akkaGroupId %% "akka-actor" % akkaVersion
 val akkaActorTestKit = akkaGroupId %% "akka-testkit" % akkaVersion % Test
+val akkaActorTyped = akkaGroupId %% "akka-actor-typed" % akkaVersion
+val akkaActorTestKitTyped = akkaGroupId %% "akka-actor-testkit-typed" % akkaVersion % Test
 
 // TODO: would like to remove the remote dep as well?
 val akkaRemote = akkaGroupId %% "akka-remote" % akkaVersion
@@ -19,7 +21,8 @@ val scalaTest = "org.scalatest" %% "scalatest" % scalaTestVersion % Test
 
 val scalaPb = "com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion % "protobuf"
 
-val deps = Seq(akkaActor, akkaActorTestKit, akkaRemote, akkaStream, akkaStreamTestKit, akkaMultiNodeTestKit, scalaTest, scalaPb)
+val akkaLibs = Seq(akkaActor, akkaActorTestKit, akkaActorTyped, akkaActorTestKitTyped, akkaRemote, akkaStream, akkaStreamTestKit, akkaMultiNodeTestKit)
+val deps = akkaLibs ++ Seq(scalaTest, scalaPb)
 
 lazy val `akka-hyparview` = (project in file("."))
   .settings(

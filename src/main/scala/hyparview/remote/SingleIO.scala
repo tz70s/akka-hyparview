@@ -8,6 +8,8 @@ import akka.util.{ByteString, Timeout}
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.duration._
 
+import akka.pattern.pipe
+
 /**
  * INTERNAL API.
  *
@@ -19,12 +21,13 @@ private[remote] class SingleIO(private val killSwitch: SharedKillSwitch)
 
   import SingleIO._
 
+  private implicit val ec = context.dispatcher
+
   private var outgoingQueue: SourceQueueWithComplete[SingleIOProtocol] = _
 
   startWith(Idle, Cache.empty)
 
   when(Idle, stateTimeout = 3.seconds) {
-    // TODO: do we need to handle cache here?
     case Event(StateTimeout, _) =>
       throw SingleIOIdleTimeoutException(
         "Idle timeout, the required data (kill switch and source queue) doesn't reach."
@@ -35,7 +38,7 @@ private[remote] class SingleIO(private val killSwitch: SharedKillSwitch)
       outgoingQueue = queue
       goto(Active) using Cache.empty
 
-    case Event(frame: SingleIOFrame, cache: Cache) =>
+    case Event(frame: SingleIORead, cache: Cache) =>
       cache.data += ((sender(), frame))
       stay using cache
   }
@@ -45,21 +48,25 @@ private[remote] class SingleIO(private val killSwitch: SharedKillSwitch)
       stateData match {
         case cache: Cache =>
           log.debug(s"Drained out transient cache data, handle reply back before state transition.")
-          for (entry <- cache.data; (ref: ActorRef, frame: SingleIOFrame) = entry) {
-            frameHandling(frame)
+          for (entry <- cache.data; (ref: ActorRef, frame: SingleIORead) = entry) {
+            readHandling(frame)
             ref ! ByteString.empty
           }
         case _ =>
       }
   }
 
-  private def frameHandling(frame: SingleIOFrame): Unit =
+  private def readHandling(frame: SingleIORead): Unit =
     log.debug(s"Cope with new frame : $frame")
 
   when(Active) {
-    case Event(frame: SingleIOFrame, _) =>
-      frameHandling(frame)
+    case Event(read: SingleIORead, _) =>
+      readHandling(read)
       sender() ! ByteString.empty
+      stay
+
+    case Event(write: SingleIOWrite, _) =>
+      outgoingQueue.offer(write).map(_ => SingleIOWriteAck).pipeTo(sender()) // currently, ignore the future value.
       stay
   }
 
@@ -83,19 +90,25 @@ private[remote] object SingleIO {
   case object Active extends State
 
   sealed trait Data
-  case class Cache(data: ArrayBuffer[(ActorRef, SingleIOFrame)]) extends Data
+  case class Cache(data: ArrayBuffer[(ActorRef, SingleIORead)]) extends Data
   object Cache {
     def empty = Cache(ArrayBuffer.empty)
   }
 
   sealed trait SingleIOProtocol {
-    def getOrEmpty(): ByteString = this match {
-      case SingleIOFrame(data) => data
-      case SingleIOAck => ByteString.empty
+    def getOrEmpty: ByteString = this match {
+      case SingleIORead(data) => data
+      case SingleIOWrite(data) => data
+      case _ => ByteString.empty
     }
   }
-  case object SingleIOAck extends SingleIOProtocol
-  case class SingleIOFrame(data: ByteString) extends SingleIOProtocol
+  case object SingleIOReadAck extends SingleIOProtocol
+  case class SingleIORead(data: ByteString) extends SingleIOProtocol
+  case class SingleIOWrite(data: ByteString) extends SingleIOProtocol
+  case object SingleIOWriteAck extends SingleIOProtocol
+
+  sealed trait SingleIOControlProtocol
+  case object SingleIOIsActive extends SingleIOControlProtocol
 
   case class SingleIOIdleTimeoutException(message: String) extends RuntimeException(message)
 }

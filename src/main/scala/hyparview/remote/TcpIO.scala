@@ -2,18 +2,35 @@ package hyparview.remote
 
 import java.net.InetSocketAddress
 
-import akka.Done
+import akka.{Done, NotUsed}
 import akka.actor.{ActorRef, ActorSystem}
 import akka.event.Logging
 import akka.stream._
-import akka.stream.scaladsl.{Flow, Framing, Keep, Source, SourceQueueWithComplete, Tcp}
+import akka.stream.scaladsl.{
+  BroadcastHub,
+  Flow,
+  Framing,
+  GraphDSL,
+  Keep,
+  Merge,
+  MergeHub,
+  Partition,
+  Sink,
+  Source,
+  SourceQueueWithComplete,
+  Tcp
+}
 import akka.util.{ByteString, Timeout}
 import hyparview.remote.SingleIO.SingleIOProtocol
 
 import scala.util.{Failure, Success}
 import akka.pattern.ask
+import akka.stream.scaladsl.Tcp.OutgoingConnection
 
+import scala.collection.concurrent.TrieMap
+import scala.concurrent.Future
 import scala.concurrent.duration._
+import scala.util.control.NonFatal
 
 /**
  * INTERNAL API.
@@ -33,12 +50,23 @@ private[remote] class TcpIO(config: RemoteConfig)(implicit system: ActorSystem, 
 
   private implicit val ec = system.dispatcher
 
+  private val bind = TrieMap[InetSocketAddress, NearHybridFlow]()
+  @volatile var swSet = Set[SharedKillSwitch]()
+
   private val log = Logging(system, classOf[TcpIO])
 
   private val serverBinding = Tcp().bind(config.hostname, config.port).runForeach { connection =>
-    val (singleIO, handler) = tcpHandler(connection.remoteAddress)
-    val queue = connection.handleWith(handler)
-    initializeSingleIO(singleIO, queue)
+    val address = connection.remoteAddress
+    val killSwitch = KillSwitches.shared(s"KillSwitchOf$address")
+
+    val (sink, source) = MergeHub
+      .source[ByteString](perProducerBufferSize = 16)
+      .toMat(BroadcastHub.sink(bufferSize = 256))(Keep.both)
+      .run()
+
+    source.runWith(Sink.ignore)
+
+    val res = connection.handleWith(Flow.fromSinkAndSource(sink, source))
   }
 
   serverBinding.onComplete {
@@ -50,27 +78,27 @@ private[remote] class TcpIO(config: RemoteConfig)(implicit system: ActorSystem, 
       log.error(s"Error occurred on server binding, please checkout: ${ex.getMessage}")
   }
 
-  /**
-   * Generate an outbound stream for outgoing connection.
-   * Similar logic to incoming.
-   * @param address The connected target address.
-   * @return ActorRef of SingleIO actor.
-   */
-  def outboundStream(address: InetSocketAddress): ActorRef = {
-    // TODO: use restart with backoff strategy.
-    val outFlow = Tcp()
+  def outSink(address: InetSocketAddress): (Sink[ByteString, NotUsed], Future[OutgoingConnection]) = {
+    val connection = Tcp()
       .outgoingConnection(address)
       .recoverWithRetries(3, {
         case ex: Throwable =>
           log.warning(s"Connection failed, retry three times.")
           throw ex
       })
-    val (singleIO, handler) = tcpHandler(address)
-    val queue = outFlow.joinMat(handler)(Keep.right).run()
-    initializeSingleIO(singleIO, queue)
-    singleIO
+
+    val killSwitch = KillSwitches.shared(s"KillSwitchOf$address")
+
+    MergeHub
+      .source[ByteString](perProducerBufferSize = 16)
+      .via(killSwitch.flow)
+      .via(TcpFraming.deframe)
+      .viaMat(connection)(Keep.both)
+      .to(Sink.ignore)
+      .run()
   }
 
+  NonFatal
   private def initializeSingleIO(singleIO: ActorRef,
                                  queue: SourceQueueWithComplete[SingleIOProtocol],
                                  retries: Int = 3): Unit =
@@ -82,7 +110,7 @@ private[remote] class TcpIO(config: RemoteConfig)(implicit system: ActorSystem, 
         } else initializeSingleIO(singleIO, queue, retries - 1)
     }
 
-  private def tcpHandler(
+  private def flowHandler(
       address: InetSocketAddress
   ): (ActorRef, Flow[ByteString, ByteString, SourceQueueWithComplete[SingleIOProtocol]]) = {
     import SingleIO._
@@ -100,14 +128,15 @@ private[remote] class TcpIO(config: RemoteConfig)(implicit system: ActorSystem, 
     val handler = Flow[ByteString]
       .via(killSwitch.flow)
       .via(TcpFraming.frame)
-      .map(SingleIOFrame)
+      .map(SingleIORead)
       .ask(singleIO)
       .orElseMat(outgoingQueue)(Keep.right)
-      .map(_.getOrEmpty())
+      .map(_.getOrEmpty)
       .viaMat(TcpFraming.deframe)(Keep.left)
 
     (singleIO, handler)
   }
+
 }
 
 private[remote] object TcpIO {
