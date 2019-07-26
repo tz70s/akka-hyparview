@@ -1,9 +1,9 @@
 val commonSettings = Seq(
   version := "0.1",
-  scalaVersion := "2.12.7"
+  scalaVersion := "2.13.0"
 )
 
-val akkaVersion = "2.5.19"
+val akkaVersion = "2.5.23"
 val akkaGroupId = "com.typesafe.akka"
 val akkaActor = akkaGroupId %% "akka-actor" % akkaVersion
 val akkaActorTestKit = akkaGroupId %% "akka-testkit" % akkaVersion % Test
@@ -16,7 +16,7 @@ val akkaStream = akkaGroupId %% "akka-stream" % akkaVersion
 val akkaStreamTestKit = akkaGroupId %% "akka-stream-testkit" % akkaVersion % Test
 val akkaMultiNodeTestKit = akkaGroupId %% "akka-multi-node-testkit" % akkaVersion
 
-val scalaTestVersion = "3.0.5"
+val scalaTestVersion = "3.0.8"
 val scalaTest = "org.scalatest" %% "scalatest" % scalaTestVersion % Test
 
 val scalaPb = "com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion % "protobuf"
